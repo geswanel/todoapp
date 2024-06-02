@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h1 class="text-center">To do list app</h1>
+  <!-- List of tasks -->
+  <div id="taskList" class="list-group">
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+      <div class="col-5">
+        <h5 class="mb-1 flex-grow-1">Task Title</h5>
+      </div>
+      <div class="col-5">      
+        <p class="mb-1 flex-grow-1">Description</p>
+      </div>
+      <button class="btn btn-danger btn-sm flex-grow-0 btn-delete-task">Delete</button>
+    </div>
+    <div class="list-group-item d-flex justify-content-between align-items-center">
+      <div class="col-5">
+        <h5 class="mb-1 flex-grow-1">Task2  Title</h5>
+      </div>
+      <div class="col-5">      
+        <p class="mb-1 flex-grow-1">Description 2</p>
+      </div>
+      <button class="btn btn-danger btn-sm flex-grow-0 btn-delete-task">Delete</button>
+    </div>
+  </div>
+
+  <!-- Form for making a new task  -->
+  <form id="taskForm" class="form-inline d-flex align-items-center justify-content- mt-4" method="POST" action="#">
+    <div class="form-group flex-grow-1 mb-2 mr-sm-2">
+      <input type="text" class="form-control" id="taskTitle" placeholder="Enter task title">
+    </div>
+    <div class="form-group flex-grow-1 mb-2 mr-sm-2">
+      <input type="text" class="form-control" id="taskDescription" placeholder="Enter task description">
+    </div>
+    <button type="submit" class="btn btn-primary mb-2 flex-grow-0">Add Task</button>
+  </form>
+</div>
+
+<script>
+  // Delete button handling
+  const deleteBtns = document.querySelectorAll(".btn-delete-task");
+  deleteBtns.forEach(btn => btn.addEventListener("click", deleteTask));
+
+  function deleteTask(event) {
+    event.preventDefault();
+
+    let btn = event.target;
+    btn.parentElement.remove();
+  }
+
+  // Form handling
+  const form = document.getElementById('taskForm');
+  form.addEventListener("submit", createTask);
+
+  function createTask(event) {
+    event.preventDefault();
+    
+    const taskTitle = document.getElementById('taskTitle').value;
+    const taskDescription = document.getElementById('taskDescription').value;
+    const newTask = document.createElement('div');
+    newTask.classList.add(
+      "list-group-item",
+      "d-flex",
+      "justify-content-between",
+      "align-items-center"
+    );
+    newTask.innerHTML = `
+    <div class="col-5">
+        <h5 class="mb-1 flex-grow-1">${taskTitle}</h5>
+      </div>
+      <div class="col-5">      
+        <p class="mb-1 flex-grow-1">${taskDescription}</p>
+      </div>
+      <button class="btn btn-danger btn-sm flex-grow-0 btn-delete-task">Delete</button>
+    `;
+    newTask.querySelector(".btn-delete-task").addEventListener('click', deleteTask);
+
+    document.getElementById('taskList').appendChild(newTask);
+
+    form.reset();
+  }
+</script>
+
+{% endblock %}
