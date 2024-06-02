@@ -18,12 +18,13 @@
   </div>
 
   <!-- Form for making a new task  -->
-  <form id="taskForm" class="form-inline d-flex align-items-center justify-content- mt-4" method="POST" action="#">
+  <form id="taskForm" class="form-inline d-flex align-items-center justify-content- mt-4" method="POST">
+    {% csrf_token %}
     <div class="form-group flex-grow-1 mb-2 mr-sm-2">
-      <input type="text" class="form-control" id="taskTitle" placeholder="Enter task title">
+      <input type="text" class="form-control" id="taskTitle" name="task_title" placeholder="Enter task title">
     </div>
     <div class="form-group flex-grow-1 mb-2 mr-sm-2">
-      <input type="text" class="form-control" id="taskDescription" placeholder="Enter task description">
+      <input type="text" class="form-control" id="taskDescription" name="task_description" placeholder="Enter task description">
     </div>
     <button type="submit" class="btn btn-primary mb-2 flex-grow-0">Add Task</button>
   </form>
@@ -50,27 +51,41 @@
     
     const taskTitle = document.getElementById('taskTitle').value;
     const taskDescription = document.getElementById('taskDescription').value;
-    const newTask = document.createElement('div');
-    newTask.classList.add(
-      "list-group-item",
-      "d-flex",
-      "justify-content-between",
-      "align-items-center"
-    );
-    newTask.innerHTML = `
-    <div class="col-5">
-        <h5 class="mb-1 flex-grow-1">${taskTitle}</h5>
-      </div>
-      <div class="col-5">      
-        <p class="mb-1 flex-grow-1">${taskDescription}</p>
-      </div>
-      <button class="btn btn-danger btn-sm flex-grow-0 btn-delete-task">Delete</button>
-    `;
-    newTask.querySelector(".btn-delete-task").addEventListener('click', deleteTask);
 
-    document.getElementById('taskList').appendChild(newTask);
+    fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({'task_title': taskTitle, 'task_description': taskDescription})
+    })
+    .then(response => response.json())
+    .then(data => {
+      const newTask = document.createElement('div');
+      newTask.classList.add(
+        "list-group-item",
+        "d-flex",
+        "justify-content-between",
+        "align-items-center"
+      );
+      newTask.innerHTML = `
+      <div class="col-5">
+          <h5 class="mb-1 flex-grow-1">${taskTitle}</h5>
+        </div>
+        <div class="col-5">
+          <p class="mb-1 flex-grow-1">${taskDescription}</p>
+        </div>
+        <button class="btn btn-danger btn-sm flex-grow-0 btn-delete-task">Delete</button>
+      `;
+      newTask.querySelector(".btn-delete-task").addEventListener('click', deleteTask);
 
-    form.reset();
+      document.getElementById('taskList').appendChild(newTask);
+
+      form.reset();
+    })
+
+    
   }
 </script>
 
