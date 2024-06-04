@@ -1,6 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-5">
+  
+  {% if user.is_authenticated %}
+    <form action="{% url 'users:logout' %}" method="POST">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary">Log Out</button>
+    </form>
+  {% else %}
+    <a href="{% url 'users:login' %}" class="btn btn-primary">Log In</a>
+  {% endif %}
+    
   <h1 class="text-center">To do list app</h1>
   <!-- List of tasks -->
   <div id="taskList" class="list-group">
