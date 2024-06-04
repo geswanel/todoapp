@@ -9,13 +9,15 @@ from .models import ToDoTask
 
 def index(request):
     if request.method == 'GET':
-        tasks = ToDoTask.objects.all()
+        tasks = []
+        if request.user.is_authenticated:
+            tasks = request.user.todotask_set.all()
         return render(request, 'todoapp/index.html', {'tasks': tasks})
     elif request.method == 'POST':
         return create_task(request)
     elif request.method == 'DELETE':
         data = json.loads(request.body)
-        return delete_task(data.get('task_id', None))
+        return delete_task(request, data.get('task_id', None))
 
 
 def create_task(request):
@@ -32,7 +34,8 @@ def create_task(request):
             else:
                 task = ToDoTask.objects.create(
                     title=title,
-                    description=description
+                    description=description,
+                    user=request.user,
                 )
                 return JsonResponse(
                     {'success': True, 'task': serialize('json', [task])},
@@ -49,10 +52,10 @@ def create_task(request):
     )
 
 
-def delete_task(id):
+def delete_task(request, id):
     if id:
         try:
-            task = ToDoTask.objects.get(pk=id)
+            task = ToDoTask.objects.get(pk=id, user=request.user)
             task.delete()
             return JsonResponse(
                 {'success': True, 'message': 'task is deleted'},

@@ -7,6 +7,7 @@
       {% csrf_token %}
       <button type="submit" class="btn btn-primary">Log Out</button>
     </form>
+    <p>Hello {{ user.username }}</p>
   {% else %}
     <a href="{% url 'users:login' %}" class="btn btn-primary">Log In</a>
     <a href="{% url 'users:register' %}" class="btn btn-primary ml-2">Register</a>
