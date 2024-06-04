@@ -12,7 +12,11 @@
       <div class="col-5">      
         <p class="mb-1 flex-grow-1">{{ task.description }}</p>
       </div>
-      <button class="btn btn-danger btn-sm flex-grow-0 btn-delete-task">Delete</button>
+      <button 
+        class="btn btn-danger btn-sm flex-grow-0 btn-delete-task"
+        data-task-id="{{ task.pk }}">
+        Delete
+      </button>
     </div>
     {% endfor %}
   </div>
@@ -38,8 +42,23 @@
   function deleteTask(event) {
     event.preventDefault();
 
-    let btn = event.target;
-    btn.parentElement.remove();
+    const btn = event.target;
+    fetch('', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+      body: JSON.stringify({'task_id': btn.dataset.taskId}),
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data['success']) {
+        btn.parentElement.remove();
+      } else {
+        alert("Deletion mistake: " + data['error'])
+      }
+    })
   }
 
   // Form handling
@@ -62,30 +81,32 @@
     })
     .then(response => response.json())
     .then(data => {
-      const newTask = document.createElement('div');
-      newTask.classList.add(
-        "list-group-item",
-        "d-flex",
-        "justify-content-between",
-        "align-items-center"
-      );
-      newTask.innerHTML = `
-      <div class="col-5">
-          <h5 class="mb-1 flex-grow-1">${taskTitle}</h5>
-        </div>
+      if (data['success']) {
+        const newTask = document.createElement('div');
+        newTask.classList.add(
+          "list-group-item",
+          "d-flex",
+          "justify-content-between",
+          "align-items-center"
+        );
+        newTask.innerHTML = `
         <div class="col-5">
-          <p class="mb-1 flex-grow-1">${taskDescription}</p>
-        </div>
-        <button class="btn btn-danger btn-sm flex-grow-0 btn-delete-task">Delete</button>
-      `;
-      newTask.querySelector(".btn-delete-task").addEventListener('click', deleteTask);
+            <h5 class="mb-1 flex-grow-1">${taskTitle}</h5>
+          </div>
+          <div class="col-5">
+            <p class="mb-1 flex-grow-1">${taskDescription}</p>
+          </div>
+          <button class="btn btn-danger btn-sm flex-grow-0 btn-delete-task">Delete</button>
+        `;
+        newTask.querySelector(".btn-delete-task").addEventListener('click', deleteTask);
 
-      document.getElementById('taskList').appendChild(newTask);
+        document.getElementById('taskList').appendChild(newTask);
 
-      form.reset();
+        form.reset();
+      } else {
+        alert("Creation mistake: " + data['error'])
+      }
     })
-
-    
   }
 </script>
 
