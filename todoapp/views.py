@@ -1,21 +1,37 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.core.serializers import serialize
+from django.contrib.auth.decorators import login_required
+from datetime import datetime, timedelta
+from django.forms.models import model_to_dict
 
 import json
 
 from .models import ToDoTask
 
 
+@login_required     # LOGIN_URL
 def index(request):
     if request.method == 'GET':
-        tasks = ToDoTask.objects.all()
-        return render(request, 'todoapp/index.html', {'tasks': tasks})
+        today_tasks = ToDoTask.objects.filter(
+            date=datetime.now().date(),
+            user=request.user,
+        )
+        yesterday_tasks = ToDoTask.objects.filter(
+            date=(datetime.now() - timedelta(days=1)).date(),
+            user=request.user,
+        )
+        context = {
+            "tasks_by_day": [
+                {"tasks": today_tasks, "day": "today"},
+                {"tasks": yesterday_tasks, "day": "yesterday"},
+            ]
+        }
+        return render(request, 'todoapp/index.html', context)
     elif request.method == 'POST':
         return create_task(request)
     elif request.method == 'DELETE':
         data = json.loads(request.body)
-        return delete_task(data.get('task_id', None))
+        return delete_task(request, data.get('task_id', None))
 
 
 def create_task(request):
@@ -32,10 +48,11 @@ def create_task(request):
             else:
                 task = ToDoTask.objects.create(
                     title=title,
-                    description=description
+                    description=description,
+                    user=request.user,
                 )
                 return JsonResponse(
-                    {'success': True, 'task': serialize('json', [task])},
+                    {'success': True, 'task': model_to_dict(task)},
                     status=201
                 )
         except json.JSONDecodeError:
@@ -49,10 +66,10 @@ def create_task(request):
     )
 
 
-def delete_task(id):
+def delete_task(request, id):
     if id:
         try:
-            task = ToDoTask.objects.get(pk=id)
+            task = ToDoTask.objects.get(pk=id, user=request.user)
             task.delete()
             return JsonResponse(
                 {'success': True, 'message': 'task is deleted'},

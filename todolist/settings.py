@@ -127,3 +127,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'todoapp:index'
 LOGOUT_REDIRECT_URL = 'todoapp:index'
+
+LOGIN_URL = 'users:login'
