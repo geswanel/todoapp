@@ -1,18 +1,32 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.core.serializers import serialize
+from django.contrib.auth.decorators import login_required
+from datetime import datetime, timedelta
+from django.forms.models import model_to_dict
 
 import json
 
 from .models import ToDoTask
 
 
+@login_required     # LOGIN_URL
 def index(request):
     if request.method == 'GET':
-        tasks = []
-        if request.user.is_authenticated:
-            tasks = request.user.todotask_set.all()
-        return render(request, 'todoapp/index.html', {'tasks': tasks})
+        today_tasks = ToDoTask.objects.filter(
+            date=datetime.now().date(),
+            user=request.user,
+        )
+        yesterday_tasks = ToDoTask.objects.filter(
+            date=(datetime.now() - timedelta(days=1)).date(),
+            user=request.user,
+        )
+        context = {
+            "tasks_by_day": [
+                {"tasks": today_tasks, "day": "today"},
+                {"tasks": yesterday_tasks, "day": "yesterday"},
+            ]
+        }
+        return render(request, 'todoapp/index.html', context)
     elif request.method == 'POST':
         return create_task(request)
     elif request.method == 'DELETE':
@@ -38,7 +52,7 @@ def create_task(request):
                     user=request.user,
                 )
                 return JsonResponse(
-                    {'success': True, 'task': serialize('json', [task])},
+                    {'success': True, 'task': model_to_dict(task)},
                     status=201
                 )
         except json.JSONDecodeError:
